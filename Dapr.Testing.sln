@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C44CFEF1-F8DD-45BF-8609-F5B8D0F19597}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapr.Order.Api", "src\Dapr.Order.Api\Dapr.Order.Api.csproj", "{424D5418-152E-4C9F-897A-F6AA11B87406}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "components", "components", "{60EF4E1E-3D4E-4E42-ADFB-780807553AB1}"
+	ProjectSection(SolutionItems) = preProject
+		components\pubsub.yaml = components\pubsub.yaml
+		dapr.yaml = dapr.yaml
+		docker-compose.yml = docker-compose.yml
+		components\pubsub-public.yaml = components\pubsub-public.yaml
+		docker-compose-all.yml = docker-compose-all.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapr.PaymentProcessor", "src\Dapr.PaymentProcessor\Dapr.PaymentProcessor.csproj", "{4CADD32C-29C2-4C5E-A746-3324B91B45B2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{424D5418-152E-4C9F-897A-F6AA11B87406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{424D5418-152E-4C9F-897A-F6AA11B87406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{424D5418-152E-4C9F-897A-F6AA11B87406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{424D5418-152E-4C9F-897A-F6AA11B87406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CADD32C-29C2-4C5E-A746-3324B91B45B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CADD32C-29C2-4C5E-A746-3324B91B45B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CADD32C-29C2-4C5E-A746-3324B91B45B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CADD32C-29C2-4C5E-A746-3324B91B45B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{424D5418-152E-4C9F-897A-F6AA11B87406} = {C44CFEF1-F8DD-45BF-8609-F5B8D0F19597}
+		{4CADD32C-29C2-4C5E-A746-3324B91B45B2} = {C44CFEF1-F8DD-45BF-8609-F5B8D0F19597}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,65 @@
+version: "3.7"
+services:
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - 8500:8500
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0 
+  orders:
+    build:
+      ./src/Dapr.Order.Api
+    ports:
+      - "50001:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+    depends_on:
+      - placement
+    networks:
+      - dapr
+  order-api-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+     "--app-id", "orders",
+     "--app-port", "8080",
+     "--placement-host-address", "placement:50006", # Dapr's placement service can be reach via the docker DNS entry
+     "--resources-path", "./components"
+     ]
+    volumes:
+        - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+    depends_on:
+      - orders
+    network_mode: "service:orders"
+
+  payments:
+    image: hashicorp/consul:latest
+    build:
+      ./src/Dapr.PaymentProcessor
+    ports:
+      - "50001:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+    depends_on:
+      - placement
+    networks:
+      - dapr
+  payments-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+     "--app-id", "payments",
+     "--app-port", "8080",
+     "--placement-host-address", "placement:50006", # Dapr's placement service can be reach via the docker DNS entry
+     "--resources-path", "./components"
+     ]
+    volumes:
+        - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+    depends_on:
+      - payments
+    network_mode: "service:payments"
+
+  placement:
+    image: "daprio/dapr"
+    command: ["./placement", "--port", "50006"]
+    ports:
+      - "50010:50010"
+  
+networks:
+  dapr: null

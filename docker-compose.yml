@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - 8500:8500
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0 
+  datadog:
+    image: gcr.io/datadoghq/agent:latest
+    pid: host
+    ports:
+      - 8125:8125
+      - 8126:8126
+      - 4317:4317
+      - 4318:4318
+    environment:
+     - DD_API_KEY=
+     - DD_ENV=dev
+     - DD_VERSION=latest
+     - DD_SITE=datadoghq.eu
+     - DD_APM_NON_LOCAL_TRAFFIC=true
+     - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+     - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT=0.0.0.0:4317
+     - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT=0.0.0.0:4318
+     - DD_TRACE_OTEL_ENABLED=true
+     - DD_LOGS_ENABLED=true
+     - DD_OTLP_CONFIG_LOGS_ENABLED=true
+     - DD_API_ENABLED=true
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - /proc/:/host/proc/:ro
+     - /sys/fs/cgroup:/host/sys/fs/cgroup:ro

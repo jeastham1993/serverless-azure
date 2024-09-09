@@ -1,0 +1,16 @@
+version: 1
+common:
+  resourcesPath: ./components/
+apps:
+  - appID: orders
+    appDirPath: ./src/Dapr.Order.Api
+    appPort: 5157
+    appProtocol: http
+    configFilePath: ../../components/configuration.yaml
+    command: ["dotnet", "run"]
+  - appID: payment-processor
+    appDirPath: ./src/Dapr.PaymentProcessor
+    appPort: 5138
+    appProtocol: http
+    configFilePath: ../../components/configuration.yaml
+    command: ["dotnet", "run"]

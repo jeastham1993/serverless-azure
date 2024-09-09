@@ -1,0 +1,15 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: appconfig
+spec:
+  nameResolution:
+    component: "consul"
+    configuration:
+      selfRegister: true
+      client:
+        address: "127.0.0.1:8500"
+  tracing:
+    samplingRate: "1"
+    otel:
+      endpointAddress: "http://127.0.0.1:4317"
