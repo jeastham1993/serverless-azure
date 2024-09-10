@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "components", "components", 
 		docker-compose.yml = docker-compose.yml
 		components\pubsub-public.yaml = components\pubsub-public.yaml
 		docker-compose-all.yml = docker-compose-all.yml
+		components\consul.yaml = components\consul.yaml
+		components\configuration.yaml = components\configuration.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapr.PaymentProcessor", "src\Dapr.PaymentProcessor\Dapr.PaymentProcessor.csproj", "{4CADD32C-29C2-4C5E-A746-3324B91B45B2}"

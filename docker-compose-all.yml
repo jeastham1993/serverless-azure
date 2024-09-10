@@ -1,18 +1,69 @@
 version: "3.7"
 services:
-  consul:
-    image: hashicorp/consul:latest
-    ports:
-      - 8500:8500
+  db:
+    image: postgres
     environment:
-      - CONSUL_BIND_INTERFACE=eth0 
+      POSTGRES_PASSWORD: Password!23
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dapr
+
+  datadog:
+    image: gcr.io/datadoghq/agent:latest
+    pid: host
+    ports:
+      - 8125:8125
+      - 8126:8126
+      - 4317:4317
+      - 4318:4318
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_ENV=dev
+      - DD_VERSION=latest
+      - DD_SITE=datadoghq.eu
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT=0.0.0.0:4317
+      - DD_TRACE_OTEL_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_OTLP_CONFIG_LOGS_ENABLED=true
+      - DD_API_ENABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    networks:
+      - dapr
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - dapr
+
   orders:
     build:
       ./src/Dapr.Order.Api
     ports:
-      - "50001:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+      - "50001:50001"
+      - "3500:3500"
+      - "8080:8080"
+    environment:
+      - OrdersDbConnectionString=Host=db;Database=orders;Username=postgres;Password=Password!23;
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://datadog:4317
+      - MOMENTO_API_KEY=${MOMENTO_API_KEY}
+      - DAPR_HOST=host.docker.internal
+      - DAPR_GRPC_PORT=50001
     depends_on:
-      - placement
+      db:
+        condition: service_healthy
     networks:
       - dapr
   order-api-dapr:
@@ -21,11 +72,13 @@ services:
       "./daprd",
      "--app-id", "orders",
      "--app-port", "8080",
-     "--placement-host-address", "placement:50006", # Dapr's placement service can be reach via the docker DNS entry
+     "--placement-host-address", "placement:50006",
+     "--dapr-http-port", "3500",
+     "--dapr-grpc-port", "50001",
      "--resources-path", "./components"
      ]
     volumes:
-        - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+        - "./components/:/components"
     depends_on:
       - orders
     network_mode: "service:orders"
@@ -35,7 +88,9 @@ services:
     build:
       ./src/Dapr.PaymentProcessor
     ports:
-      - "50001:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+      - "50002:50002"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://datadog:4317
     depends_on:
       - placement
     networks:
@@ -46,11 +101,12 @@ services:
       "./daprd",
      "--app-id", "payments",
      "--app-port", "8080",
-     "--placement-host-address", "placement:50006", # Dapr's placement service can be reach via the docker DNS entry
+     "--placement-host-address", "placement:50006",
+     "--dapr-grpc-port", "50002",
      "--resources-path", "./components"
      ]
     volumes:
-        - "./components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+        - "./components/:/components"
     depends_on:
       - payments
     network_mode: "service:payments"

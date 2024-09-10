@@ -15,17 +15,17 @@ public class OrderEventPublisher
         _logger = logger;
     }
     
-    public async Task PublishOrderCreatedEventFor(string orderId)
+    public async Task PublishOrderCreatedEventFor(Order order)
     {
         var pubSubName = _configuration["Messaging:PubSubName"];
         var topicName = _configuration["Messaging:OrderCreatedTopicName"]; 
         
-        this._logger.LogInformation("Publishing to {pubSubName} with topic {topicName}", pubSubName, topicName);
+        _logger.LogInformation("Publishing to {pubSubName} with topic {topicName}", pubSubName, topicName);
         
-        _daprClient.PublishEventAsync(pubSubName,
+        await _daprClient.PublishEventAsync(pubSubName,
             topicName, new OrderCreatedEvent()
             {
-                OrderId = orderId
+                Order = order.AsDTO()
             });
     }
 }
