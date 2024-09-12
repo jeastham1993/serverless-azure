@@ -27,6 +27,18 @@ resource "azurerm_container_app_environment" "dapr_container_apps_dev_environmen
   }
 }
 
+resource "azurerm_user_assigned_identity" "public_service_bus_identity" {
+  location            = azurerm_resource_group.dapr_container_apps.location
+  name                = "publicServiceBusIdentity"
+  resource_group_name = azurerm_resource_group.dapr_container_apps.name
+}
+
+resource "azurerm_role_assignment" "public_service_bus_identity_role_assignment" {
+  scope                = azurerm_servicebus_namespace.public_service_bus_namespace.id
+  role_definition_name = "Azure Service Bus Data Owner"
+  principal_id         = azurerm_user_assigned_identity.public_service_bus_identity.principal_id
+}
+
 resource "azurerm_servicebus_namespace" "public_service_bus_namespace" {
   name                = "jeasthampublic"
   location            = azurerm_resource_group.dapr_container_apps.location
@@ -37,6 +49,23 @@ resource "azurerm_servicebus_namespace" "public_service_bus_namespace" {
     source = "terraform"
     env = "dev"
   }
+}
+
+resource "azurerm_servicebus_topic" "order_created_public_topic" {
+  name         = "orders-ordercreated-v1"
+  namespace_id = azurerm_servicebus_namespace.public_service_bus_namespace.id
+}
+
+resource "azurerm_user_assigned_identity" "orders_service_bus_identity" {
+  location            = azurerm_resource_group.dapr_container_apps.location
+  name                = "ordersServiceBusIdentity"
+  resource_group_name = azurerm_resource_group.dapr_container_apps.name
+}
+
+resource "azurerm_role_assignment" "orders_service_bus_identity_assignment" {
+  scope                = azurerm_servicebus_namespace.orders_service_bus_namespace.id
+  role_definition_name = "Azure Service Bus Data Owner"
+  principal_id         = azurerm_user_assigned_identity.orders_service_bus_identity.principal_id
 }
 
 resource "azurerm_servicebus_namespace" "orders_service_bus_namespace" {
@@ -56,69 +85,28 @@ resource "azurerm_servicebus_topic" "order_created_topic" {
   namespace_id = azurerm_servicebus_namespace.orders_service_bus_namespace.id
 }
 
-resource "azurerm_servicebus_topic" "order_created_public_topic" {
-  name         = "orders.ordercreated.v1"
-  namespace_id = azurerm_servicebus_namespace.public_service_bus_namespace.id
-}
-
-resource "azurerm_user_assigned_identity" "orders_app_identity" {
+resource "azurerm_user_assigned_identity" "orders_service_identity" {
   location            = azurerm_resource_group.dapr_container_apps.location
-  name                = "ordersAppIdentity"
+  name                = "ordersServiceIdentity"
   resource_group_name = azurerm_resource_group.dapr_container_apps.name
-}
-
-resource "azurerm_user_assigned_identity" "payments_app_identity" {
-  location            = azurerm_resource_group.dapr_container_apps.location
-  name                = "paymentsAppIdentity"
-  resource_group_name = azurerm_resource_group.dapr_container_apps.name
-}
-
-resource "azurerm_role_assignment" "orders_public_app_identity_role_assignment" {
-  scope                = azurerm_servicebus_namespace.public_service_bus_namespace.id
-  role_definition_name = "Azure Service Bus Data Sender"
-  principal_id         = azurerm_user_assigned_identity.orders_app_identity.principal_id
-}
-
-resource "azurerm_role_assignment" "orders_public_app_identity_receiver_role_assignment" {
-  scope                = azurerm_servicebus_namespace.public_service_bus_namespace.id
-  role_definition_name = "Azure Service Bus Data Receiver"
-  principal_id         = azurerm_user_assigned_identity.orders_app_identity.principal_id
-}
-
-resource "azurerm_role_assignment" "orders_app_identity_role_assignment" {
-  scope                = azurerm_servicebus_namespace.orders_service_bus_namespace.id
-  role_definition_name = "Azure Service Bus Data Sender"
-  principal_id         = azurerm_user_assigned_identity.orders_app_identity.principal_id
-}
-
-resource "azurerm_role_assignment" "orders_app_identity_receiver_role_assignment" {
-  scope                = azurerm_servicebus_namespace.orders_service_bus_namespace.id
-  role_definition_name = "Azure Service Bus Data Receiver"
-  principal_id         = azurerm_user_assigned_identity.orders_app_identity.principal_id
 }
 
 resource "azurerm_role_assignment" "orders_app_acr_identity_role_assignment" {
   scope                = azurerm_container_registry.orders_service_acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.orders_app_identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.orders_service_identity.principal_id
 }
 
-# resource "azurerm_role_assignment" "payments_public_app_identity_role_assignment" {
-#   scope                = azurerm_servicebus_namespace.public_service_bus_namespace.id
-#   role_definition_name = "Azure Service Bus Data Sender"
-#   principal_id         = azurerm_user_assigned_identity.payments_app_identity.principal_id
-# }
-
-# resource "azurerm_role_assignment" "payments_public_app_identity_receiver_role_assignment" {
-#   scope                = azurerm_servicebus_namespace.public_service_bus_namespace.id
-#   role_definition_name = "Azure Service Bus Data Receiver"
-#   principal_id         = azurerm_user_assigned_identity.payments_app_identity.principal_id
-# }
+resource "azurerm_user_assigned_identity" "payments_service_identity" {
+  location            = azurerm_resource_group.dapr_container_apps.location
+  name                = "paymentsServiceIdentity"
+  resource_group_name = azurerm_resource_group.dapr_container_apps.name
+}
 
 resource "azurerm_role_assignment" "payments_app_acr_identity_role_assignment" {
   scope                = azurerm_container_registry.orders_service_acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.payments_app_identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.payments_service_identity.principal_id
 }
 
 resource "azurerm_container_registry" "orders_service_acr" {
@@ -140,7 +128,7 @@ resource "azurerm_container_app_environment_dapr_component" "orders_topics" {
   }
   metadata {
     name = "azureClientId"
-    value = azurerm_user_assigned_identity.orders_app_identity.client_id
+    value = azurerm_user_assigned_identity.orders_service_bus_identity.client_id
   }
 }
 
@@ -156,7 +144,7 @@ resource "azurerm_container_app_environment_dapr_component" "order_created_publi
   }
   metadata {
     name = "azureClientId"
-    value = azurerm_user_assigned_identity.orders_app_identity.client_id
+    value = azurerm_user_assigned_identity.public_service_bus_identity.client_id
   }
 }
 
@@ -172,10 +160,10 @@ resource "azurerm_container_app" "orders" {
   }
   registry {
     server = azurerm_container_registry.orders_service_acr.login_server
-    identity = azurerm_user_assigned_identity.orders_app_identity.id
+    identity = azurerm_user_assigned_identity.orders_service_identity.id
   }
   identity {
-    identity_ids = [ azurerm_user_assigned_identity.orders_app_identity.id ]
+    identity_ids = [ azurerm_user_assigned_identity.orders_service_identity.id, azurerm_user_assigned_identity.orders_service_bus_identity.id, azurerm_user_assigned_identity.public_service_bus_identity.id ]
     type = "UserAssigned"
   }
   ingress {
@@ -194,6 +182,11 @@ resource "azurerm_container_app" "orders" {
       image  = "jeasthamdaprcontainerapps.azurecr.io/orders:${var.orders_application_version}"
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name = "OrdersDbConnectionString"
+        value = var.db_connection_string
+      }
 
       env {
         name = "DD_SITE"
@@ -237,7 +230,7 @@ resource "azurerm_container_app" "orders" {
       }
     }
   }
-  depends_on = [ azurerm_role_assignment.orders_app_acr_identity_role_assignment ]
+  depends_on = [ azurerm_role_assignment.public_service_bus_identity_role_assignment, azurerm_role_assignment.orders_service_bus_identity_assignment, azurerm_role_assignment.orders_app_acr_identity_role_assignment ]
 }
 
 resource "azurerm_container_app" "payments" {
@@ -252,10 +245,10 @@ resource "azurerm_container_app" "payments" {
   }
   registry {
     server = azurerm_container_registry.orders_service_acr.login_server
-    identity = azurerm_user_assigned_identity.payments_app_identity.id
+    identity = azurerm_user_assigned_identity.payments_service_identity.id
   }
   identity {
-    identity_ids = [ azurerm_user_assigned_identity.payments_app_identity.id ]
+    identity_ids = [ azurerm_user_assigned_identity.payments_service_identity.id, azurerm_user_assigned_identity.public_service_bus_identity.id ]
     type = "UserAssigned"
   }
   ingress {
@@ -313,5 +306,5 @@ resource "azurerm_container_app" "payments" {
       }
     }
   }
-  depends_on = [ azurerm_role_assignment.orders_app_acr_identity_role_assignment ]
+  depends_on = [ azurerm_role_assignment.public_service_bus_identity_role_assignment, azurerm_role_assignment.payments_app_acr_identity_role_assignment ]
 }

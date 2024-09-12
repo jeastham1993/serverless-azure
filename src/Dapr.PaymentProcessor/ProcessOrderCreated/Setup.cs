@@ -9,7 +9,7 @@ public static class Setup
         var ordersHttpClient = DaprClient.CreateInvokeHttpClient("orders");
         
         app.MapPost("/order-created",
-            [Topic("public", "orders.ordercreated.v1")] async (
+            [Topic("public", "orders-ordercreated-v1")] async (
                 OrderCreatedEvent evt) =>
             {
                 var res = await ordersHttpClient.GetAsync($"/api/order/{evt.OrderId}");
