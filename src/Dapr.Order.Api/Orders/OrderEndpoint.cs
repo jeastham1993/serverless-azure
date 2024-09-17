@@ -63,6 +63,8 @@ public class OrderEndpoint
             _ordersContext.Orders.Add(order);
             await _ordersContext.SaveChangesAsync();
 
+            _logger.LogInformation("Stored");
+
             await this._eventPublisher.PublishOrderCreatedEventFor(order);
         
             return new OkObjectResult(order);
