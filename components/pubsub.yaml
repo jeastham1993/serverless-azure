@@ -3,10 +3,10 @@ kind: Component
 metadata:
   name: orders
 spec:
-  type: pubsub.kafka
+  type: pubsub.redis
   version: v1
   metadata:
-  - name: brokers # Required. Kafka broker connection setting
-    value: "warp:9092"
-  - name: authtype
-    value: "none"
+    - name: redisHost
+      value: redis:6379
+    - name: redisPassword
+      value: ""
