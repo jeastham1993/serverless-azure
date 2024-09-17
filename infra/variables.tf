@@ -21,3 +21,11 @@ variable "momento_api_key" {
 variable "db_connection_string" {
     type = string
 }
+
+variable "warpstream_agent_key" {
+    type = string
+}
+
+variable "warpstream_virtual_cluster_id" {
+    type = string
+}
