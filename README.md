@@ -7,6 +7,8 @@ Building with the Azure serverless services.
 - .NET 8
 - [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/)
 - Docker, or Docker compatible tooling
+- Existing Azure subscription with Storage Account created for storing Terraform state 
+    - You'll need to update the 3 providers.tf files to set the correct storage account name
 
 ## Local Development
 
