@@ -1,8 +1,20 @@
-variable "orders_application_version" {
+variable "subscription_id" {
+  type = string
+}
+
+variable "resource_group_name"{
     type = string
 }
 
-variable "payments_application_version" {
+variable "container_registry_name" {
+  type = string
+}
+
+variable "env" {
+  type = string
+}
+
+variable "orders_application_version" {
     type = string
 }
 
@@ -20,8 +32,4 @@ variable "momento_api_key" {
 
 variable "db_connection_string" {
     type = string
-}
-
-variable "subscription_id" {
-  type = string
 }

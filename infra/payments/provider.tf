@@ -7,6 +7,12 @@ terraform {
       version = "~> 4.1.0"
     }
   }
+  backend "azurerm" {
+      resource_group_name  = "terraform-state"
+      storage_account_name = "jeasthamterraformstate"
+      container_name       = "tfstate"
+      key                  = "payments-terraform.tfstate"
+  }
 }
 
 # Configure the Microsoft Azure Provider
